@@ -4,3 +4,8 @@ obj
 *.suo
 *.user
 pingme.txt
+/tool/.vs/MemTraceUI/DesignTimeBuild/*.dtbcache
+/tool/.vs/MemTraceUI/v15/Server/sqlite3/*.lock
+/tool/.vs/MemTraceUI/v15/Server/sqlite3/*.ide
+/tool/.vs/MemTraceUI/v15/Server/sqlite3/*.ide-shm
+/tool/.vs/MemTraceUI/v15/Server/sqlite3/*.ide-wal

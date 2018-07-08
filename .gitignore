@@ -9,3 +9,4 @@ pingme.txt
 /tool/.vs/MemTraceUI/v15/Server/sqlite3/*.ide
 /tool/.vs/MemTraceUI/v15/Server/sqlite3/*.ide-shm
 /tool/.vs/MemTraceUI/v15/Server/sqlite3/*.ide-wal
+runtime/vs2017/.vs

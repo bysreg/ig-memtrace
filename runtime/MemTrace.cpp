@@ -708,83 +708,83 @@ static void MemTrace::HookCrt()
   // @@@ If you are a licensed Durango dev, get in touch with us and we can
   // share a way to hook the CRT for Durango. NDA material.
 
-// #if defined(MEMTRACE_WINDOWS)
-//   // On Windows, dynamically hook the CRT allocation functions to route through memtrace.
+ #if defined(MEMTRACE_WINDOWS)
+   // On Windows, dynamically hook the CRT allocation functions to route through memtrace.
 
-//   // Load minhook DLL
-//   if (HMODULE minhook_module = LoadLibraryA("MinHook.x64.dll"))
-//   {
-//     auto MH_Initialize_Func = (decltype(&MH_Initialize)) GetProcAddress(minhook_module, "MH_Initialize");
-//     auto MH_CreateHook_Func = (decltype(&MH_CreateHook)) GetProcAddress(minhook_module, "MH_CreateHook");
-//     auto MH_EnableHook_Func = (decltype(&MH_EnableHook)) GetProcAddress(minhook_module, "MH_EnableHook");
+   // Load minhook DLL
+   if (HMODULE minhook_module = LoadLibraryA("MinHook.x64.dll"))
+   {
+     auto MH_Initialize_Func = (decltype(&MH_Initialize)) GetProcAddress(minhook_module, "MH_Initialize");
+     auto MH_CreateHook_Func = (decltype(&MH_CreateHook)) GetProcAddress(minhook_module, "MH_CreateHook");
+     auto MH_EnableHook_Func = (decltype(&MH_EnableHook)) GetProcAddress(minhook_module, "MH_EnableHook");
 
-//     if (!MH_Initialize_Func || !MH_CreateHook_Func || !MH_EnableHook_Func || MH_OK != (*MH_Initialize_Func)())
-//     {
-//       DebugBreak();
-//     }
+     if (!MH_Initialize_Func || !MH_CreateHook_Func || !MH_EnableHook_Func || MH_OK != (*MH_Initialize_Func)())
+     {
+       DebugBreak();
+     }
 
-// #if _MSC_VER != 1700
-// #error This needs updating for the new CRT version. Talk to Andreas.
-// #endif
+ #if _MSC_VER != 1914
+ #error This needs updating for the new CRT version. See https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features 
+ #endif
 
-// #if !defined(_DEBUG)
+ #if !defined(_DEBUG)
 
-//     if (HMODULE crt_module = GetModuleHandleA("msvcr110.dll"))
-//     {
-// #define IG_WRAP_FN(symbol) { #symbol, (void*) Wrapped_##symbol, (void**) &Original_##symbol }
-//       static const struct
-//       {
-//         const char* m_FunctionName;
-//         void*       m_Wrapper;
-//         void**      m_StockFunctionPtr;
-//       }
-//       wrapped_functions[] =
-//       {
-//         IG_WRAP_FN(calloc),
-//         IG_WRAP_FN(malloc),
-//         IG_WRAP_FN(free),
-//         IG_WRAP_FN(realloc),
-//         IG_WRAP_FN(_recalloc),
-//         IG_WRAP_FN(_aligned_malloc),
-//         IG_WRAP_FN(_aligned_free),
-//         IG_WRAP_FN(_aligned_realloc),
-//         IG_WRAP_FN(_aligned_recalloc),
-//         IG_WRAP_FN(_aligned_offset_malloc),
-//         IG_WRAP_FN(_aligned_offset_realloc),
-//         IG_WRAP_FN(_aligned_offset_recalloc),
-//       };
-// #undef IG_WRAP_FN
+     if (HMODULE crt_module = GetModuleHandleA("ucrtbase.dll"))
+     {
+ #define IG_WRAP_FN(symbol) { #symbol, (void*) Wrapped_##symbol, (void**) &Original_##symbol }
+       static const struct
+       {
+         const char* m_FunctionName;
+         void*       m_Wrapper;
+         void**      m_StockFunctionPtr;
+       }
+       wrapped_functions[] =
+       {
+         IG_WRAP_FN(calloc),
+         IG_WRAP_FN(malloc),
+         IG_WRAP_FN(free),
+         IG_WRAP_FN(realloc),
+         IG_WRAP_FN(_recalloc),
+         IG_WRAP_FN(_aligned_malloc),
+         IG_WRAP_FN(_aligned_free),
+         IG_WRAP_FN(_aligned_realloc),
+         IG_WRAP_FN(_aligned_recalloc),
+         IG_WRAP_FN(_aligned_offset_malloc),
+         IG_WRAP_FN(_aligned_offset_realloc),
+         IG_WRAP_FN(_aligned_offset_recalloc),
+       };
+ #undef IG_WRAP_FN
 
-//       for (int i = 0; i < ARRAY_SIZE(wrapped_functions); ++i)
-//       {
-//         if (void* target = GetProcAddress(crt_module, wrapped_functions[i].m_FunctionName))
-//         {
-//           (*MH_CreateHook_Func)(target, wrapped_functions[i].m_Wrapper, wrapped_functions[i].m_StockFunctionPtr);
-//         }
-//         else
-//         {
-//           MemTracePrint("Failed to hook '%s' - entry point not found\n", wrapped_functions[i].m_FunctionName);
-//         }
-//       }
+       for (int i = 0; i < ARRAY_SIZE(wrapped_functions); ++i)
+       {
+         if (void* target = GetProcAddress(crt_module, wrapped_functions[i].m_FunctionName))
+         {
+           (*MH_CreateHook_Func)(target, wrapped_functions[i].m_Wrapper, wrapped_functions[i].m_StockFunctionPtr);
+         }
+         else
+         {
+           MemTracePrint("Failed to hook '%s' - entry point not found\n", wrapped_functions[i].m_FunctionName);
+         }
+       }
 
-//       MH_STATUS status;
+       MH_STATUS status;
 
-//       if (MH_OK != (status = (*MH_EnableHook_Func)(MH_ALL_HOOKS)))
-//       {
-//         MemTracePrint("CRT hooking failed: %08x\n", (uint32_t) status);
-//       }
-//     }
-// #else
-//     MemTracePrint("WARNING: CRT hooking in Debug builds not yet supported\n");
-// #endif
+       if (MH_OK != (status = (*MH_EnableHook_Func)(MH_ALL_HOOKS)))
+       {
+         MemTracePrint("CRT hooking failed: %08x\n", (uint32_t) status);
+       }
+     }
+ #else
+     MemTracePrint("WARNING: CRT hooking in Debug builds not yet supported\n");
+ #endif
 
-//     // NOTE: minhook.x64.dll left mapped on purpose.
-//   }
-//   else
-//   {
-//     MemTracePrint("WARNING: Failed to load MinHook.x64.dll - CRT allocations will not be captured\n");
-//   }
-// #endif
+     // NOTE: minhook.x64.dll left mapped on purpose.
+   }
+   else
+   {
+     MemTracePrint("ERROR: Failed to load MinHook.x64.dll - CRT allocations will not be captured\n");
+   }
+ #endif
 }
 
 //-----------------------------------------------------------------------------

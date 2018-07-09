@@ -727,9 +727,11 @@ static void MemTrace::HookCrt()
  #error This needs updating for the new CRT version. See https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features 
  #endif
 
- #if !defined(_DEBUG)
-
-     if (HMODULE crt_module = GetModuleHandleA("ucrtbase.dll"))
+ #ifdef _DEBUG
+     if (HMODULE crt_module = GetModuleHandleA("ucrtbased.dll"))
+#else
+	 if (HMODULE crt_module = GetModuleHandleA("ucrtbase.dll"))
+#endif
      {
  #define IG_WRAP_FN(symbol) { #symbol, (void*) Wrapped_##symbol, (void**) &Original_##symbol }
        static const struct
@@ -774,9 +776,6 @@ static void MemTrace::HookCrt()
          MemTracePrint("CRT hooking failed: %08x\n", (uint32_t) status);
        }
      }
- #else
-     MemTracePrint("WARNING: CRT hooking in Debug builds not yet supported\n");
- #endif
 
      // NOTE: minhook.x64.dll left mapped on purpose.
    }

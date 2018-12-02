@@ -723,7 +723,7 @@ static void MemTrace::HookCrt()
        DebugBreak();
      }
 
- #if _MSC_VER != 1915
+ #if _MSC_VER != 1916
  #error This needs updating for the new CRT version. See https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features 
  #endif
 
